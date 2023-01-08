@@ -4,7 +4,6 @@ import { Denops } from "https://deno.land/x/ddu_vim@v2.1.0/deps.ts";
 type SelectItem = {
   idx: number;
   text: string;
-  formatted: string;
 };
 
 type Params = {
@@ -12,7 +11,7 @@ type Params = {
 };
 
 export type ActionData = {
-  item: SelectItem;
+  idx: number;
 };
 
 export class Source extends BaseSource<Params> {
@@ -27,8 +26,8 @@ export class Source extends BaseSource<Params> {
         if (args.sourceParams.items) {
           controller.enqueue(
             args.sourceParams.items.map((i) => ({
-              word: i.formatted,
-              action: { item: i },
+              word: i.text,
+              action: { idx: i.idx },
             })),
           );
         }

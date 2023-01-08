@@ -18,8 +18,8 @@ export class Kind extends BaseKind<Params> {
       const action = args.items[0]?.action as ActionData;
       await args.denops.call(
         "luaeval",
-        "require('ddu-vim-ui-select').on_choice(_A.arg)",
-        { arg: action.item },
+        "require('ddu-vim-ui-select').on_choice(_A.idx)",
+        action,
       );
       return Promise.resolve(ActionFlags.None);
     },

@@ -1,35 +1,41 @@
+local convert = require('ddu-vim-ui-select.compat').convert
+local iter = require('ddu-vim-ui-select.compat').iter
+
 local ddu_ui_select = {}
 local save_on_choice = nil
+local save_items = nil
 
 ddu_ui_select.select = function(items, opts, on_choice)
   opts = opts or {}
-  opts.format_item = vim.F.if_nil(opts.format_item, function(e)
+  opts.format_item = opts.format_item or function(e)
     return tostring(e)
-  end)
+  end
 
-  local indexed_items, width = (function(items_)
-    local indexed_items = {}
-    local max_width = 0
-    for idx, item in ipairs(items_) do
-      local formatted = opts.format_item(item)
-      table.insert(indexed_items, { idx = idx, text = item, formatted = formatted })
-      max_width = math.max(max_width, vim.fn.strdisplaywidth(formatted))
-    end
-    return indexed_items, max_width
-  end)(items)
+  local indexed_items = {}
+  for idx, item in iter(items) do
+    local text = opts.format_item(item)
+    table.insert(indexed_items, { idx = idx, text = text })
+  end
+
   save_on_choice = on_choice
-  vim.fn['ddu#start']({
+  save_items = items
+
+  vim.fn['ddu#start'](convert {
     sources = { {
       name = 'ui_select',
-      params = { items = indexed_items }
+      params = { items = indexed_items },
     } },
   })
 end
 
-ddu_ui_select.on_choice = function(indexed_items)
-  vim.F.if_nil(save_on_choice, function(_, _)
-  end)(indexed_items.text, indexed_items.idx)
-  save_on_choice = nil
+ddu_ui_select.on_choice = function(idx)
+  if save_on_choice ~= nil then
+    local on_choice = save_on_choice
+    local items = save_items
+    save_on_choice = nil
+    save_items = nil
+    on_choice(items[idx], idx)
+  end
 end
 
 return ddu_ui_select
